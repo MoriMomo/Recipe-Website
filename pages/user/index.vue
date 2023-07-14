@@ -1,6 +1,6 @@
 <template>
   <div>
-    <app-recipe-list :dataRecipes="recipes"></app-recipe-list>
+    <app-recipe-list :dataRecipes="recipes" :isUser="true"></app-recipe-list>
   </div>
 </template>
 

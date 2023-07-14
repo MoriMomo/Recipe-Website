@@ -19,9 +19,25 @@
           </nuxt-link>
         </div>
 
-        <div class="recipes-content__body__review card-footer bg-transparent">
-          <img :src="likeImage" alt="Heart" @click="likeClick" />
-          <p>{{ likeCount }} likes</p>
+        <div
+          class="recipes-content__body__review card-footer bg-transparent row"
+        >
+          <div class="col-2">
+            <img :src="likeImage" alt="" @click="likeClick" />
+          </div>
+          <div class="col-6">
+            <p>{{ likeCount }} Likes</p>
+          </div>
+          <div class="col-2" v-show="isUser">
+            <img
+              src="../../static/img/delete.png"
+              alt="delete"
+              @click="deleteRecipe"
+            />
+          </div>
+          <div class="col-2" v-show="isUser">
+            <img src="../../static/img/edit.png" alt="" @click="editRecipe" />
+          </div>
         </div>
       </div>
     </div>
@@ -30,7 +46,16 @@
 
 <script>
 export default {
-  props: ["recipe"],
+  props: {
+    recipe: {
+      type: Object,
+      default: "",
+    },
+    isUser: {
+      type: Boolean,
+      default: false,
+    },
+  },
 
   computed: {
     likeCount() {
@@ -85,6 +110,14 @@ export default {
         recipeId: this.recipe.id,
         newDataRecipe: newRecipe,
       });
+    },
+
+    deleteRecipe() {
+      this.$store.dispatch("deleteRecipe", this.recipe.id);
+    },
+
+    editRecipe() {
+      this.$router.push("/recipes/" + this.recipe.id + "/edit");
     },
   },
 };

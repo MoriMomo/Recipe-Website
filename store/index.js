@@ -82,6 +82,10 @@ const createStore = () => {
             },
             setUserData(state, payload) {
                 state.userData = payload
+            },
+            deleteRecipe(state, payload) {
+                const recipes = state.recipes.filter(item => item.id !== payload)
+                state.recipes = recipes
             }
         },
         actions: {
@@ -131,15 +135,23 @@ const createStore = () => {
                         }
                         localStorage.setItem("user", JSON.stringify(userData))
                         Cookie.set("acc_user", JSON.stringify(userData))
+
+                        localStorage.setItem("tokenExpiration",
+                            new Date().getTime() +
+                            Number.parseInt(response.data.expiresIn) * 1000
+                        )
+                        Cookie.set("tokenExpiration",
+                            new Date().getTime() +
+                            Number.parseInt(response.data.expiresIn) * 1000
+                        )
                     })
                     .catch((error) => console.log(error))
-
-
             },
 
-            initAuth({ commit }, req) {
+            initAuth({ commit, dispatch }, req) {
                 let token;
                 let user;
+                let expirationDate
                 if (req) {
 
                     if (!req.headers.cookie) {
@@ -158,9 +170,20 @@ const createStore = () => {
                         return
                     }
                     token = jwtCookie.split("=")[1]
+                    // expirationDate = req.headers.cookie
+                    // .split(";")
+                    // .find((c) => c.trim().startsWith("expirationDate="))
+                    // .split("=")[1]
+                    expirationDate = Cookie.get("tokenExpiration")
                 } else {
                     token = localStorage.getItem("token")
                     user = JSON.parse(localStorage.getItem("user"))
+                    expirationDate = localStorage.getItem("tokenExpiration")
+                }
+                if (new Date().getTime() > +expirationDate || !token) {
+                    console.log("no token or invalid token")
+                    dispatch("logout")
+                    return
                 }
                 commit("setToken", token)
                 commit("setUserData", user)
@@ -193,6 +216,20 @@ const createStore = () => {
                     commit("setRecipe", recipeArray);
                 })
                     .catch(e => context.error(e))
+            },
+
+            deleteRecipe({ commit, state }, recipeId) {
+                return axios
+                    .delete("https://nuxt-recipe-default-rtdb.firebaseio.com/datarecipe/"
+                        + recipeId + ".json?auth=" + state.token)
+                    .then((res) => commit("deleteRecipe", recipeId))
+            },
+
+            updateRecipe({ dispatch, state }, recipe) {
+                return axios.put(
+                    "https://nuxt-recipe-default-rtdb.firebaseio.com/datarecipe/" +
+                    recipe.id + ".json?auth=" + state.token, recipe.newRecipe
+                ).then((res) => dispatch("getRecipe"))
             }
         }
     })

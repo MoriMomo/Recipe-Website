@@ -5,6 +5,7 @@
         v-for="data in dataRecipes"
         :key="data.id"
         :recipe="data"
+        :isUser="isUser"
       ></app-recipe-item>
     </div>
   </div>
@@ -14,7 +15,16 @@
 import RecipeItem from "./recipeItem.vue";
 
 export default {
-  props: ["dataRecipes"],
+  props: {
+    dataRecipes: {
+      type: Array,
+      default: "",
+    },
+    isUser: {
+      type: Boolean,
+      default: false,
+    },
+  },
   components: {
     "app-recipe-item": RecipeItem,
   },
